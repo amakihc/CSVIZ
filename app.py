@@ -1,6 +1,6 @@
 # app.py
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QComboBox, QHBoxLayout, QVBoxLayout, QLabel, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from gui_layout import UILayout
 from data_processor import load_csv_data, compute_psd
 import sys
@@ -21,24 +21,15 @@ class App(QMainWindow):
         
         # UIコンポーネントをAppクラスに追加
         self.ui.browse_button.clicked.connect(self.browse_file)
-        
-        # ドロップダウンリストを追加
-        self.channel_selection_layout = QHBoxLayout()
-        self.channel_label = QLabel("チャンネルを選択:")
-        self.channel_combo_box = QComboBox()
-        self.channel_combo_box.currentIndexChanged.connect(self.plot_selected_channel)
-        
-        self.channel_selection_layout.addWidget(self.channel_label)
-        self.channel_selection_layout.addWidget(self.channel_combo_box)
-        
-        self.ui.main_layout.insertLayout(1, self.channel_selection_layout) # ファイル選択の下に挿入
+        # gui_layoutで作成されたチャンネル選択のコンボボックスに接続
+        self.ui.channel_combo_box.currentIndexChanged.connect(self.plot_selected_channel)
 
     def browse_file(self):
         """
         ファイルダイアログを開き、CSVファイルを選択する
         """
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "CSVファイルを選択", "", "CSV Files (*.csv)"
+            self, "Select CSV File", "", "CSV Files (*.csv)"
         )
         if file_path:
             self.ui.file_path_label.setText(file_path)
@@ -53,12 +44,12 @@ class App(QMainWindow):
             return
 
         # ドロップダウンリストを更新
-        self.channel_combo_box.clear()
+        self.ui.channel_combo_box.clear()
         
         # 最初の列は時間データなので、2列目からドロップダウンリストに追加
         num_columns = len(self.df.columns)
-        channel_names = [f"列 {i+1}" for i in range(1, num_columns)]
-        self.channel_combo_box.addItems(channel_names)
+        channel_names = [f"Column {i+1}" for i in range(1, num_columns)]
+        self.ui.channel_combo_box.addItems(channel_names)
 
         # 最初のチャンネルのデータを自動でプロット
         self.plot_selected_channel()
@@ -67,7 +58,7 @@ class App(QMainWindow):
         """
         ドロップダウンリストで選択されたチャンネルのデータをプロットする
         """
-        selected_index = self.channel_combo_box.currentIndex()
+        selected_index = self.ui.channel_combo_box.currentIndex()
         
         # インデックスが有効か確認 (ドロップダウンリストが空でないか)
         if selected_index < 0 or self.df is None:
